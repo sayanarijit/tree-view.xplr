@@ -62,7 +62,7 @@ local function expand(path, explorer_config)
     path = xplr.util.dirname(path)
     explorer_config.filters = {}
     explorer_config.searcher = nil
-    explorer_config = state.tree[path].explorer_config or explorer_config
+    explorer_config = (state.tree[path] or {}).explorer_config or explorer_config
   end
 end
 
@@ -148,7 +148,11 @@ end
 
 local function render(ctx)
   state.pwd = ctx.app.pwd
-  state.root = ctx.app.initial_pwd
+  if ctx.app.vroot then
+    state.root = ctx.app.vroot
+  else
+    state.root = ctx.app.initial_pwd
+  end
 
   if
     state.pwd ~= state.root
