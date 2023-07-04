@@ -19,51 +19,40 @@ local Expansion = {
   DOT = "•",
 }
 
-local function new_branch(path, nodes, is_expanded, depth)
-  if is_expanded == nil then
-    is_expanded = false
-  end
-  nodes = nodes or {}
+local function new_branch(path, nodes, explorer_config)
   local modified = nil
   local node = xplr.util.node(path)
-  if node then
+  if node and nodes ~= nil then
     modified = node.last_modified
   end
   return {
     name = xplr.util.basename(path) or "/",
     path = path,
     node = node,
-    nodes = nodes,
+    nodes = nodes or {},
     expansion = Expansion.CLOSED,
     depth = #xplr.util.path_split(path) - 1,
     modified = modified,
+    explorer_config = explorer_config,
   }
 end
 
 local function explore(path, explorer_config)
   local nodes = xplr.util.explore(path, explorer_config)
-  state.tree[path] = new_branch(path, nodes)
+  state.tree[path] = new_branch(path, nodes, explorer_config)
   for _, node in ipairs(nodes) do
     if node.is_dir then
       if state.tree[node.absolute_path] == nil then
-        state.tree[node.absolute_path] = new_branch(node.absolute_path, {}, false)
+        state.tree[node.absolute_path] = new_branch(node.absolute_path)
       end
     end
   end
 end
 
 local function expand(path, explorer_config)
-  local modified = nil
-  local node = xplr.util.node(path)
-
-  if node then
-    modified = node.last_modified
-  end
-
   while true do
-    if state.tree[path] == nil or modified ~= state.tree[path].last_modified then
-      explore(path, explorer_config)
-    end
+    explore(path, explorer_config)
+
     state.tree[path].expansion = Expansion.OPEN
     if path == state.root then
       break
@@ -71,6 +60,7 @@ local function expand(path, explorer_config)
     path = xplr.util.dirname(path)
     explorer_config.filters = {}
     explorer_config.searcher = nil
+    explorer_config = state.tree[path].explorer_config or explorer_config
   end
 end
 
