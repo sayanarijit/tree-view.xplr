@@ -69,6 +69,8 @@ local function expand(path, explorer_config)
       break
     end
     path = xplr.util.dirname(path)
+    explorer_config.filters = {}
+    explorer_config.searcher = nil
   end
 end
 
