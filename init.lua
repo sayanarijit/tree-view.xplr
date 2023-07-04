@@ -238,19 +238,19 @@ local function toggle(app)
   state.all_expanded = false
 end
 
-local function close_all()
-  for p, v in pairs(state.tree) do
-    if v.node and v.node.is_dir then
-      v.expansion = Expansion.CLOSED
+local function close_all(app)
+  for _, node in ipairs(app.directory_buffer.nodes) do
+    if node.is_dir then
+      state.tree[node.absolute_path].expansion = Expansion.CLOSED
     end
   end
   state.all_expanded = false
 end
 
 local function open_all(app)
-  for p, v in pairs(state.tree) do
-    if v.node and v.node.is_dir then
-      expand(p, app.explorer_config)
+  for _, node in ipairs(app.directory_buffer.nodes) do
+    if node.is_dir then
+      expand(node.absolute_path, app.explorer_config)
     end
   end
   state.all_expanded = true
@@ -258,7 +258,7 @@ end
 
 local function toggle_all(app)
   if state.all_expanded then
-    close_all()
+    close_all(app)
   else
     open_all(app)
   end
