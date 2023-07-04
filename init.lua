@@ -185,10 +185,11 @@ local function render(ctx)
 
     if focused_path and focused_path == line.path then
       if focused_path == state.pwd then
-        l = l .. xplr.util.paint(" (empty) ", { add_modifiers = { "Reversed" } })
+        l = l .. xplr.util.paint(" (empty)", { add_modifiers = { "Reversed" } })
       else
         l = xplr.util.paint(l, { add_modifiers = { "Reversed" } })
       end
+      l = l .. "◀ "
       state.focus = i - 1
     end
 
