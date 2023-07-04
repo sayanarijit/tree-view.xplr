@@ -47,7 +47,7 @@ require("tree-view").setup({
     toggle_layout_key = "esc",
 
     toggle_expansion_mode = "default",
-    toggle_expansion_mode = "o",
+    toggle_expansion_key = "o",
 
     as_default_layout = false,
     as_initial_layout = false,
