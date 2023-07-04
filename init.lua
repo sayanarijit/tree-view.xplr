@@ -10,7 +10,6 @@ local state = {
   is_layout_active = false,
   fullscreen = false,
   indent = "  ",
-  all_expanded = false,
 }
 
 local Expansion = {
@@ -19,7 +18,7 @@ local Expansion = {
   DOT = "•",
 }
 
-local function new_branch(path, nodes, explorer_config)
+local function new_branch(path, nodes, explorer_config, all_expanded)
   local modified = nil
   local node = xplr.util.node(path)
   if node and nodes ~= nil then
@@ -34,12 +33,15 @@ local function new_branch(path, nodes, explorer_config)
     depth = #xplr.util.path_split(path) - 1,
     modified = modified,
     explorer_config = explorer_config,
+    all_expanded = all_expanded or false,
   }
 end
 
 local function explore(path, explorer_config)
+  local branch = state.tree[path]
   local nodes = xplr.util.explore(path, explorer_config)
-  state.tree[path] = new_branch(path, nodes, explorer_config)
+  state.tree[path] =
+    new_branch(path, nodes, explorer_config, branch and branch.all_expanded)
   for _, node in ipairs(nodes) do
     if node.is_dir then
       if state.tree[node.absolute_path] == nil then
@@ -226,9 +228,8 @@ local function toggle(app)
     expand(path, app.explorer_config)
   elseif state.tree[path].expansion == Expansion.OPEN then
     state.tree[path].expansion = Expansion.CLOSED
+    state.tree[app.pwd].all_expanded = false
   end
-
-  state.all_expanded = false
 end
 
 local function close_all(app)
@@ -237,7 +238,7 @@ local function close_all(app)
       state.tree[node.absolute_path].expansion = Expansion.CLOSED
     end
   end
-  state.all_expanded = false
+  state.tree[app.pwd].all_expanded = false
 end
 
 local function open_all(app)
@@ -246,11 +247,11 @@ local function open_all(app)
       expand(node.absolute_path, app.explorer_config)
     end
   end
-  state.all_expanded = true
+  state.tree[app.pwd].all_expanded = true
 end
 
 local function toggle_all(app)
-  if state.all_expanded then
+  if state.tree[app.pwd].all_expanded then
     close_all(app)
   else
     open_all(app)
