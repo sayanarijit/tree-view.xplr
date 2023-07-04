@@ -43,6 +43,8 @@ require("tree-view").setup({
 
     fullscreen = false,
 
+    indent = "  ",
+
     toggle_layout_mode = "default",
     toggle_layout_key = "esc",
 
