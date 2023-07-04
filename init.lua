@@ -5,9 +5,12 @@ local xplr = xplr
 local state = {
   tree = {},
   pwd = "",
+  root = "",
   focus = 0,
   is_layout_active = false,
   fullscreen = false,
+  indent = "  ",
+  all_expanded = false,
 }
 
 local Expansion = {
@@ -16,7 +19,7 @@ local Expansion = {
   DOT = "•",
 }
 
-local function new_branch(path, nodes, is_expanded)
+local function new_branch(path, nodes, is_expanded, depth)
   if is_expanded == nil then
     is_expanded = false
   end
@@ -62,7 +65,7 @@ local function expand(path, explorer_config)
       explore(path, explorer_config)
     end
     state.tree[path].expansion = Expansion.OPEN
-    if path == "/" then
+    if path == state.root then
       break
     end
     path = xplr.util.dirname(path)
@@ -79,11 +82,13 @@ local function offset(listing, height)
   return result
 end
 
-local function list_dfs(path)
+local function list_dfs(path, ndepth)
   local branch = state.tree[path]
   if branch == nil then
     return {}
   end
+
+  ndepth = ndepth or branch.depth
 
   local item = {
     name = branch.name,
@@ -91,7 +96,7 @@ local function list_dfs(path)
     node = branch.node,
     expansion = branch.expansion,
     total = #branch.nodes,
-    padding = string.rep(" ", branch.depth),
+    padding = string.rep(state.indent, branch.depth - ndepth),
   }
 
   local items = { item }
@@ -99,7 +104,7 @@ local function list_dfs(path)
   if branch.expansion == Expansion.OPEN then
     for _, n in ipairs(branch.nodes) do
       if n.is_dir then
-        local items_ = list_dfs(n.absolute_path)
+        local items_ = list_dfs(n.absolute_path, ndepth)
         for _, c in ipairs(items_) do
           table.insert(items, c)
         end
@@ -109,7 +114,7 @@ local function list_dfs(path)
           path = n.absolute_path,
           expansion = Expansion.DOT,
           total = 0,
-          padding = string.rep(" ", branch.depth + 1),
+          padding = string.rep(state.indent, branch.depth - ndepth + 1),
           node = n,
         })
       end
@@ -149,6 +154,15 @@ end
 
 local function render(ctx)
   state.pwd = ctx.app.pwd
+  state.root = ctx.app.initial_pwd
+
+  if
+    state.pwd ~= state.root
+    and string.sub(state.pwd, 1, #state.root + 1) ~= state.root .. "/"
+  then
+    state.root = state.pwd
+  end
+
   expand(state.pwd, ctx.app.explorer_config)
 
   local focused_path = state.pwd
@@ -156,11 +170,11 @@ local function render(ctx)
     focused_path = ctx.app.focused_node.absolute_path
   end
 
-  local lines = list_dfs("/")
+  local lines = list_dfs(state.root)
 
   local body = {}
   for i, line in ipairs(lines) do
-    local l = line.path
+    local l = " " .. line.path
     if line.path ~= "/" then
       l = " " .. line.expansion .. " " .. render_node(line.node)
     end
@@ -187,9 +201,15 @@ local function render(ctx)
     body = offset(body, ctx.layout_size.height)
   end
 
+  local title = state.pwd
+  if ctx.app.vroot then
+    title = "vroot:/" .. string.sub(state.pwd, #ctx.app.vroot + 2)
+  end
+  title = " " .. title .. " (" .. tostring(#state.tree[state.pwd].nodes) .. ") "
+
   return {
     CustomList = {
-      ui = { title = { format = " " .. focused_path .. " " } },
+      ui = { title = { format = title } },
       body = body,
     },
   }
@@ -214,6 +234,34 @@ local function toggle(app)
   elseif state.tree[path].expansion == Expansion.OPEN then
     state.tree[path].expansion = Expansion.CLOSED
   end
+
+  state.all_expanded = false
+end
+
+local function close_all()
+  for p, v in pairs(state.tree) do
+    if v.node and v.node.is_dir then
+      v.expansion = Expansion.CLOSED
+    end
+  end
+  state.all_expanded = false
+end
+
+local function open_all(app)
+  for p, v in pairs(state.tree) do
+    if v.node and v.node.is_dir then
+      expand(p, app.explorer_config)
+    end
+  end
+  state.all_expanded = true
+end
+
+local function toggle_all(app)
+  if state.all_expanded then
+    close_all()
+  else
+    open_all(app)
+  end
 end
 
 xplr.config.layouts.custom.tree_view_fullscreen = {
@@ -232,22 +280,25 @@ local function toggle_layout(_)
     msgs = {
       { SwitchLayoutBuiltin = "default" },
     }
+    state.is_layout_active = false
   elseif state.fullscreen then
     msgs = {
       { SwitchLayoutCustom = "tree_view_fullscreen" },
     }
+    state.is_layout_active = true
   else
     msgs = {
       { SwitchLayoutCustom = "tree_view" },
     }
+    state.is_layout_active = true
   end
-  state.is_layout_active = not state.is_layout_active
   return msgs
 end
 
 xplr.fn.custom.tree_view = {
   render = render,
   toggle = toggle,
+  toggle_all = toggle_all,
   toggle_layout = toggle_layout,
 }
 
@@ -289,6 +340,11 @@ local function setup(args)
   args.toggle_expansion_mode = "default"
   args.toggle_expansion_key = "o"
 
+  args.toggle_expansion_all_mode = "default"
+  args.toggle_expansion_all_key = "O"
+
+  state.indent = args.indent or state.indent
+
   xplr.config.modes.builtin[args.mode].key_bindings.on_key[args.key] = {
     help = "tree view",
     messages = {
@@ -312,6 +368,15 @@ local function setup(args)
       messages = {
         "PopMode",
         { CallLuaSilently = "custom.tree_view.toggle" },
+      },
+    }
+
+  xplr.config.modes.builtin[args.toggle_expansion_all_mode].key_bindings.on_key[args.toggle_expansion_all_key] =
+    {
+      help = "toggle all expansion",
+      messages = {
+        "PopMode",
+        { CallLuaSilently = "custom.tree_view.toggle_all" },
       },
     }
 end

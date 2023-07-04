@@ -49,6 +49,9 @@ require("tree-view").setup({
     toggle_expansion_mode = "default",
     toggle_expansion_key = "o",
 
+    toggle_expansion_all_mode = "default",
+    toggle_expansion_all_key = "O",
+
     as_default_layout = false,
     as_initial_layout = false,
 })
@@ -56,6 +59,7 @@ require("tree-view").setup({
 -- In default mode:
 --   Press `esc` to toggle layout.
 --   Press `o` to toggle expansion.
+--   Press `O` to toggle all expansion.
 -- In switch_layout mode:
 --   Press `T` to switch to tree layout
 ```
