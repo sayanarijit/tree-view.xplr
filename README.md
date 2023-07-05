@@ -65,3 +65,9 @@ require("tree-view").setup({
 -- In switch_layout mode:
 --   Press `T` to switch to tree layout
 ```
+
+## Also see:
+
+- [zentable.xplr](https://github.com/sayanarijit/zentable.xplr)
+- [dual-pane.xplr](https://github.com/sayanarijit/dual-pane.xplr)
+- [tri-pane.xplr](https://github.com/sayanarijit/tri-pane.xplr)
