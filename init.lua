@@ -172,9 +172,11 @@ local function render(ctx)
 
   local body = {}
   for i, line in ipairs(lines) do
-    local l = " " .. line.path
-    if line.path ~= "/" then
-      l = " " .. line.expansion .. " " .. render_node(line.node)
+    local l = " " .. line.expansion
+    if line.path == "/" then
+      l = l .. " " .. line.path
+    else
+      l = l .. " " .. render_node(line.node)
     end
 
     l = l .. " "
@@ -332,14 +334,14 @@ local function setup(args)
   args.mode = args.mode or "switch_layout"
   args.key = args.key or "T"
 
-  args.toggle_layout_mode = "default"
-  args.toggle_layout_key = "esc"
+  args.toggle_layout_mode = args.toggle_layout_mode or "default"
+  args.toggle_layout_key = args.toggle_layout_key or "esc"
 
-  args.toggle_expansion_mode = "default"
-  args.toggle_expansion_key = "o"
+  args.toggle_expansion_mode = args.toggle_expansion_mode or "default"
+  args.toggle_expansion_key = args.toggle_expansion_key or "o"
 
-  args.toggle_expansion_all_mode = "default"
-  args.toggle_expansion_all_key = "O"
+  args.toggle_expansion_all_mode = args.toggle_expansion_all_mode or "default"
+  args.toggle_expansion_all_key = args.toggle_expansion_all_key or "O"
 
   state.indent = args.indent or state.indent
 
