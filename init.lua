@@ -209,6 +209,10 @@ local function render(ctx)
       l = l .. " " .. render_node(line.node)
     end
 
+    if line.expansion == Expansion.OPEN then
+      l = l .. " (" .. tostring(line.total) .. ")"
+    end
+
     if state.is_selected[line.path] then
       l = xplr.util.paint(l, { add_modifiers = { "CrossedOut" } })
       l = l .. " " .. Cursor.SELECTION
@@ -224,10 +228,6 @@ local function render(ctx)
       end
 
       state.focus = i - 1
-    end
-
-    if line.expansion == Expansion.OPEN then
-      l = l .. "(" .. tostring(line.total) .. ")"
     end
 
     table.insert(body, line.padding .. l)
