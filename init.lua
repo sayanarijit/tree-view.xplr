@@ -147,6 +147,24 @@ local function render_node(node)
   return r
 end
 
+local function common_parent(path1, path2)
+  local p1 = xplr.util.path_split(path1)
+  local p2 = xplr.util.path_split(path2)
+  local common = {}
+
+  for i, part in ipairs(p1) do
+    if part == "/" then
+      -- pass
+    elseif p2[i] == part then
+      table.insert(common, part)
+    else
+      break
+    end
+  end
+
+  return "/" .. table.concat(common, "/")
+end
+
 local function render(ctx)
   state.pwd = ctx.app.pwd
   if ctx.app.vroot then
@@ -159,7 +177,7 @@ local function render(ctx)
       state.pwd ~= state.root
       and string.sub(state.pwd, 1, #state.root + 1) ~= state.root .. "/"
   then
-    state.root = state.pwd
+    state.root = common_parent(state.pwd, state.root)
   end
 
   expand(state.pwd, ctx.app.explorer_config)
