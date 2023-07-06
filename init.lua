@@ -10,12 +10,18 @@ local state = {
   is_layout_active = false,
   fullscreen = false,
   indent = "  ",
+  is_selected = {},
 }
 
 local Expansion = {
   OPEN = "▼",
   CLOSED = "▶",
-  DOT = "•",
+  NA = "•",
+}
+
+local Cursor = {
+  FOCUS = "◀",
+  SELECTION = "✓",
 }
 
 local function new_branch(path, nodes, explorer_config, all_expanded)
@@ -107,7 +113,7 @@ local function list_dfs(path, ndepth)
         table.insert(items, {
           name = n.relative_path,
           path = n.absolute_path,
-          expansion = Expansion.DOT,
+          expansion = Expansion.NA,
           total = 0,
           padding = string.rep(state.indent, branch.depth - ndepth + 1),
           node = n,
@@ -180,6 +186,11 @@ local function render(ctx)
     state.root = common_parent(state.pwd, state.root)
   end
 
+  state.is_selected = {}
+  for _, sel in ipairs(ctx.app.selection) do
+    state.is_selected[sel.absolute_path] = true
+  end
+
   expand(state.pwd, ctx.app.explorer_config)
 
   local focused_path = state.pwd
@@ -198,15 +209,20 @@ local function render(ctx)
       l = l .. " " .. render_node(line.node)
     end
 
-    l = l .. " "
+    if state.is_selected[line.path] then
+      l = xplr.util.paint(l, { add_modifiers = { "CrossedOut" } })
+      l = l .. " " .. Cursor.SELECTION
+    end
 
     if focused_path and focused_path == line.path then
+      l = l .. " " .. Cursor.FOCUS .. " "
+
       if focused_path == state.pwd then
         l = l .. xplr.util.paint(" (empty)", { add_modifiers = { "Reversed" } })
       else
         l = xplr.util.paint(l, { add_modifiers = { "Reversed" } })
       end
-      l = l .. "◀ "
+
       state.focus = i - 1
     end
 
