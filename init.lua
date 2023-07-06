@@ -24,6 +24,9 @@ local function new_branch(path, nodes, explorer_config, all_expanded)
   if node and nodes ~= nil then
     modified = node.last_modified
   end
+  if explorer_config then
+    explorer_config.searcher = nil
+  end
   return {
     name = xplr.util.basename(path) or "/",
     path = path,
@@ -41,7 +44,7 @@ local function explore(path, explorer_config)
   local branch = state.tree[path]
   local nodes = xplr.util.explore(path, explorer_config)
   state.tree[path] =
-    new_branch(path, nodes, explorer_config, branch and branch.all_expanded)
+      new_branch(path, nodes, explorer_config, branch and branch.all_expanded)
   for _, node in ipairs(nodes) do
     if node.is_dir then
       if state.tree[node.absolute_path] == nil then
@@ -60,8 +63,6 @@ local function expand(path, explorer_config)
       break
     end
     path = xplr.util.dirname(path)
-    explorer_config.filters = {}
-    explorer_config.searcher = nil
     explorer_config = (state.tree[path] or {}).explorer_config or explorer_config
   end
 end
@@ -155,8 +156,8 @@ local function render(ctx)
   end
 
   if
-    state.pwd ~= state.root
-    and string.sub(state.pwd, 1, #state.root + 1) ~= state.root .. "/"
+      state.pwd ~= state.root
+      and string.sub(state.pwd, 1, #state.root + 1) ~= state.root .. "/"
   then
     state.root = state.pwd
   end
@@ -312,7 +313,7 @@ local function setup(args)
   if args.as_default_layout == true then
     if state.fullscreen then
       xplr.config.layouts.builtin.default =
-        xplr.config.layouts.custom.tree_view_fullscreen
+          xplr.config.layouts.custom.tree_view_fullscreen
     else
       xplr.config.layouts.builtin.default = xplr.config.layouts.custom.tree_view
     end
@@ -354,31 +355,31 @@ local function setup(args)
   }
 
   xplr.config.modes.builtin[args.toggle_layout_mode].key_bindings.on_key[args.toggle_layout_key] =
-    {
-      help = "tree view",
-      messages = {
-        "PopMode",
-        { CallLuaSilently = "custom.tree_view.toggle_layout" },
-      },
-    }
+  {
+    help = "tree view",
+    messages = {
+      "PopMode",
+      { CallLuaSilently = "custom.tree_view.toggle_layout" },
+    },
+  }
 
   xplr.config.modes.builtin[args.toggle_expansion_mode].key_bindings.on_key[args.toggle_expansion_key] =
-    {
-      help = "toggle expansion",
-      messages = {
-        "PopMode",
-        { CallLuaSilently = "custom.tree_view.toggle" },
-      },
-    }
+  {
+    help = "toggle expansion",
+    messages = {
+      "PopMode",
+      { CallLuaSilently = "custom.tree_view.toggle" },
+    },
+  }
 
   xplr.config.modes.builtin[args.toggle_expansion_all_mode].key_bindings.on_key[args.toggle_expansion_all_key] =
-    {
-      help = "toggle all expansion",
-      messages = {
-        "PopMode",
-        { CallLuaSilently = "custom.tree_view.toggle_all" },
-      },
-    }
+  {
+    help = "toggle all expansion",
+    messages = {
+      "PopMode",
+      { CallLuaSilently = "custom.tree_view.toggle_all" },
+    },
+  }
 end
 
 return { setup = setup, render_node = render_node }
