@@ -236,11 +236,7 @@ local function render(ctx)
 end
 
 local function toggle(app)
-  if not app.focused_node then
-    return
-  end
-
-  if not app.focused_node.is_dir then
+  if not app.focused_node or not app.focused_node.is_dir then
     return
   end
 
