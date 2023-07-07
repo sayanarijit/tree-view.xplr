@@ -142,7 +142,8 @@ local function render_node(node)
     if node.is_broken then
       r = r .. "×"
     else
-      local symlink_path = xplr.util.shorten(node.symlink.absolute_path)
+      local symlink_path =
+          xplr.util.shorten(node.symlink.absolute_path, { base = node.parent })
       if node.symlink.is_dir then
         symlink_path = symlink_path .. "/"
       end
