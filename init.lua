@@ -24,6 +24,10 @@ local Cursor = {
   SELECTION = "✓",
 }
 
+local function is_dir(n)
+  return n.is_dir or (n.symlink and n.symlink.is_dir)
+end
+
 local function new_branch(path, nodes, explorer_config, all_expanded)
   local modified = nil
   local node = xplr.util.node(path)
@@ -52,7 +56,7 @@ local function explore(path, explorer_config)
   state.tree[path] =
       new_branch(path, nodes, explorer_config, branch and branch.all_expanded)
   for _, node in ipairs(nodes) do
-    if node.is_dir then
+    if is_dir(node) then
       if state.tree[node.absolute_path] == nil then
         state.tree[node.absolute_path] = new_branch(node.absolute_path)
       end
@@ -104,7 +108,7 @@ local function list_dfs(path, ndepth)
 
   if branch.expansion == Expansion.OPEN then
     for _, n in ipairs(branch.nodes) do
-      if n.is_dir then
+      if is_dir(n) then
         local items_ = list_dfs(n.absolute_path, ndepth)
         for _, c in ipairs(items_) do
           table.insert(items, c)
@@ -272,7 +276,7 @@ end
 
 local function close_all(app)
   for _, node in ipairs(app.directory_buffer.nodes) do
-    if node.is_dir then
+    if is_dir(node) then
       state.tree[node.absolute_path].expansion = Expansion.CLOSED
     end
   end
@@ -281,7 +285,7 @@ end
 
 local function open_all(app)
   for _, node in ipairs(app.directory_buffer.nodes) do
-    if node.is_dir then
+    if is_dir(node) then
       expand(node.absolute_path, app.explorer_config)
     end
   end
