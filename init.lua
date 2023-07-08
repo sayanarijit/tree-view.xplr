@@ -274,6 +274,17 @@ local function toggle(app)
   end
 end
 
+local function open(app)
+  local path = app.focused_node.absolute_path
+  expand(path, app.explorer_config)
+end
+
+local function close(app)
+  local path = app.focused_node.absolute_path
+  state.tree[path].expansion = Expansion.CLOSED
+  state.tree[app.pwd].all_expanded = false
+end
+
 local function close_all(app)
   for _, node in ipairs(app.directory_buffer.nodes) do
     if is_dir(node) then
@@ -336,6 +347,8 @@ xplr.fn.custom.tree_view = {
   toggle = toggle,
   toggle_all = toggle_all,
   toggle_layout = toggle_layout,
+  open = open,
+  close = close,
 }
 
 local function setup(args)
