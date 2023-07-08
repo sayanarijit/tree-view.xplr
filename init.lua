@@ -11,6 +11,7 @@ local state = {
   fullscreen = false,
   indent = "  ",
   is_selected = {},
+  node_types = {},
 }
 
 local Expansion = {
@@ -38,6 +39,15 @@ local function is_dir(n)
   return n.is_dir or (n.symlink and n.symlink.is_dir)
 end
 
+local function get_set_node_type(node)
+  local nt = state.node_types[node.absolute_path]
+  if not nt then
+    nt = xplr.util.node_type(node)
+    state.node_types[node.absolute_path] = nt
+  end
+  return nt
+end
+
 local function new_branch(node, nodes, explorer_config, all_expanded)
   local path = node
   if type(node) == "table" then
@@ -47,16 +57,25 @@ local function new_branch(node, nodes, explorer_config, all_expanded)
   end
 
   if node then
-    local nt = xplr.util.node_type(node)
+    local nt = get_set_node_type(node)
     node.meta = nt.meta
     node.style = nt.style
+  end
+
+  if nodes then
+    for _, n in ipairs(nodes) do
+      local nt = get_set_node_type(n)
+      n.meta = nt.meta
+      n.style = nt.style
+    end
   end
 
   if explorer_config then
     explorer_config.searcher = nil
   end
+
   return {
-    name = (node or {}).relative_path or "/",
+    name = node and node.relative_path or "/",
     path = path,
     node = node,
     nodes = nodes or {},
@@ -72,11 +91,8 @@ local function explore(path, explorer_config)
   local nodes = xplr.util.explore(path, explorer_config)
   state.tree[path] =
       new_branch(path, nodes, explorer_config, branch and branch.all_expanded)
-  for _, node in ipairs(nodes) do
-    local nt = xplr.util.node_type(node)
-    node.meta = nt.meta
-    node.style = nt.style
 
+  for _, node in ipairs(nodes) do
     if is_dir(node) then
       if state.tree[node.absolute_path] == nil then
         state.tree[node.absolute_path] = new_branch(node)
