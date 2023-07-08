@@ -260,7 +260,7 @@ local function render(ctx)
       end
     end
 
-    local l = " " .. exp_icon
+    local l = exp_icon
     if line.path == "/" then
       l = l .. " " .. line.path
     else
@@ -288,7 +288,7 @@ local function render(ctx)
       state.highlight = i - 1
     end
 
-    table.insert(body, line.padding .. l)
+    table.insert(body, " " .. line.padding .. l)
   end
 
   if state.highlight > 0 then
