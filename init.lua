@@ -219,9 +219,9 @@ local function render(ctx)
 
   expand(state.pwd, ctx.app.explorer_config)
 
-  local focused_path = state.pwd
+  local cursor_path = state.pwd
   if ctx.app.focused_node then
-    focused_path = ctx.app.focused_node.absolute_path
+    cursor_path = ctx.app.focused_node.absolute_path
   end
 
   local lines = list_dfs(state.root)
@@ -232,9 +232,9 @@ local function render(ctx)
     local is_focused = false
     local exp_icon = line.expansion
 
-    if focused_path and focused_path == line.path then
+    if cursor_path and cursor_path == line.path then
       is_highlighted = true
-      if focused_path ~= state.pwd then
+      if cursor_path ~= state.pwd then
         is_focused = true
         exp_icon = Expansion.highlight(line.expansion)
       end
