@@ -6,7 +6,7 @@ local state = {
   tree = {},
   pwd = "",
   root = "",
-  focus = 0,
+  highlight = 0,
   is_layout_active = false,
   fullscreen = false,
   indent = "  ",
@@ -14,10 +14,20 @@ local state = {
 }
 
 local Expansion = {
-  OPEN = "▼",
-  CLOSED = "▶",
-  NA = "•",
+  OPEN = "▽",
+  CLOSED = "▷",
+  NA = "◦",
 }
+
+Expansion.highlight = function(expansion)
+  if expansion == Expansion.OPEN then
+    return "▼"
+  elseif expansion == Expansion.CLOSED then
+    return "▶"
+  else
+    return "•"
+  end
+end
 
 local Cursor = {
   FOCUS = "◀",
@@ -28,23 +38,30 @@ local function is_dir(n)
   return n.is_dir or (n.symlink and n.symlink.is_dir)
 end
 
-local function new_branch(path, nodes, explorer_config, all_expanded)
-  local modified = nil
-  local node = xplr.util.node(path)
-  if node and nodes ~= nil then
-    modified = node.last_modified
+local function new_branch(node, nodes, explorer_config, all_expanded)
+  local path = node
+  if type(node) == "table" then
+    path = node.absolute_path
+  else
+    node = xplr.util.node(path)
   end
+
+  if node then
+    local nt = xplr.util.node_type(node)
+    node.meta = nt.meta
+    node.style = nt.style
+  end
+
   if explorer_config then
     explorer_config.searcher = nil
   end
   return {
-    name = xplr.util.basename(path) or "/",
+    name = (node or {}).relative_path or "/",
     path = path,
     node = node,
     nodes = nodes or {},
     expansion = Expansion.CLOSED,
     depth = #xplr.util.path_split(path) - 1,
-    modified = modified,
     explorer_config = explorer_config,
     all_expanded = all_expanded or false,
   }
@@ -58,7 +75,7 @@ local function explore(path, explorer_config)
   for _, node in ipairs(nodes) do
     if is_dir(node) then
       if state.tree[node.absolute_path] == nil then
-        state.tree[node.absolute_path] = new_branch(node.absolute_path)
+        state.tree[node.absolute_path] = new_branch(node)
       end
     end
   end
@@ -79,7 +96,7 @@ end
 
 local function offset(listing, height)
   local h = height - 2
-  local start = (state.focus - (state.focus % h))
+  local start = (state.highlight - (state.highlight % h))
   local result = {}
   for i = start + 1, start + h, 1 do
     table.insert(result, listing[i])
@@ -132,7 +149,11 @@ end
 local function render_node(node)
   local nl = xplr.util.paint("\\n", { add_modifiers = { "Italic", "Dim" } })
   local r = ""
+  if node.meta and node.meta.icon ~= nil then
+    r = node.meta.icon .. " "
+  end
   local style = xplr.util.lscolor(node.absolute_path)
+  style = xplr.util.style_mix({ style, node.style })
 
   local rel = node.relative_path
   if node.is_dir then
@@ -207,7 +228,19 @@ local function render(ctx)
 
   local body = {}
   for i, line in ipairs(lines) do
-    local l = " " .. line.expansion
+    local is_highlighted = false
+    local is_focused = false
+    local exp_icon = line.expansion
+
+    if focused_path and focused_path == line.path then
+      is_highlighted = true
+      if focused_path ~= state.pwd then
+        is_focused = true
+        exp_icon = Expansion.highlight(line.expansion)
+      end
+    end
+
+    local l = " " .. exp_icon
     if line.path == "/" then
       l = l .. " " .. line.path
     else
@@ -223,22 +256,22 @@ local function render(ctx)
       l = l .. " " .. Cursor.SELECTION
     end
 
-    if focused_path and focused_path == line.path then
-      if focused_path == state.pwd then
-        l = l .. " " .. xplr.util.paint(" (empty) ", { add_modifiers = { "Reversed" } })
+    if is_highlighted then
+      if is_focused then
+        l = xplr.util.paint(l, { add_modifiers = { "Bold" } })
       else
-        l = xplr.util.paint(l, { add_modifiers = { "Reversed" } })
+        l = l .. " " .. xplr.util.paint("(empty)", { add_modifiers = { "Dim" } })
       end
 
-      l = l .. " " .. Cursor.FOCUS .. " "
+      l = l .. " " .. Cursor.FOCUS
 
-      state.focus = i - 1
+      state.highlight = i - 1
     end
 
     table.insert(body, line.padding .. l)
   end
 
-  if state.focus > 0 then
+  if state.highlight > 0 then
     body = offset(body, ctx.layout_size.height)
   end
 
