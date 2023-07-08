@@ -2,7 +2,7 @@
 
 This plugin implements tree view support for xplr.
 
-[![demo](https://s12.gifyu.com/images/SQGR3.gif)](https://gifyu.com/image/SQGR3)
+![demo](https://github.com/sayanarijit/tree-view.xplr/assets/11632726/2bd3263a-95ec-455f-9eee-6a237c374b8c)
 
 ## Requirements
 
