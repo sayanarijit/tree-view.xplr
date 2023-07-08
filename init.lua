@@ -309,33 +309,33 @@ local function render(ctx)
   }
 end
 
-local function toggle(app)
+local function open(app)
   if not app.focused_node or not is_dir(app.focused_node) then
     return
   end
-
-  local path = app.focused_node.absolute_path
-  if state.tree[path] == nil then
-    explore(path, app.explorer_config)
-  end
-
-  if state.tree[path].expansion == Expansion.CLOSED then
-    expand(path, app.explorer_config)
-  elseif state.tree[path].expansion == Expansion.OPEN then
-    state.tree[path].expansion = Expansion.CLOSED
-    state.tree[app.pwd].all_expanded = false
-  end
-end
-
-local function open(app)
   local path = app.focused_node.absolute_path
   expand(path, app.explorer_config)
 end
 
 local function close(app)
+  if not app.focused_node or not is_dir(app.focused_node) then
+    return
+  end
   local path = app.focused_node.absolute_path
   state.tree[path].expansion = Expansion.CLOSED
   state.tree[app.pwd].all_expanded = false
+end
+
+local function toggle(app)
+  if not app.focused_node or not is_dir(app.focused_node) then
+    return
+  end
+  local path = app.focused_node.absolute_path
+  if state.tree[path].expansion == Expansion.CLOSED then
+    open(app)
+  elseif state.tree[path].expansion == Expansion.OPEN then
+    close(app)
+  end
 end
 
 local function close_all(app)
