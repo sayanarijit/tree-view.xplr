@@ -45,6 +45,7 @@ require("tree-view").setup({
 
     indent = "  ",
 
+    -- If you feel slowness, you might want to toggle back to the default view.
     toggle_layout_mode = "default",
     toggle_layout_key = "esc",
 
@@ -54,8 +55,10 @@ require("tree-view").setup({
     toggle_expansion_all_mode = "default",
     toggle_expansion_all_key = "O",
 
-    as_default_layout = false,
     as_initial_layout = false,
+
+    -- Disables toggling layout.
+    as_default_layout = false,
 })
 
 -- In default mode:
