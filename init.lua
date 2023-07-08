@@ -73,6 +73,10 @@ local function explore(path, explorer_config)
   state.tree[path] =
       new_branch(path, nodes, explorer_config, branch and branch.all_expanded)
   for _, node in ipairs(nodes) do
+    local nt = xplr.util.node_type(node)
+    node.meta = nt.meta
+    node.style = nt.style
+
     if is_dir(node) then
       if state.tree[node.absolute_path] == nil then
         state.tree[node.absolute_path] = new_branch(node)
