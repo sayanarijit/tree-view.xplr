@@ -12,6 +12,8 @@ local state = {
   indent = "  ",
   is_selected = {},
   node_types = {},
+  fallback_layout = "Table",
+  fallback_threshold = nil,
 }
 
 local Expansion = {
@@ -62,11 +64,16 @@ local function new_branch(node, nodes, explorer_config, all_expanded)
     node.style = nt.style
   end
 
+  local fallback = false
   if nodes then
-    for _, n in ipairs(nodes) do
-      local nt = get_set_node_type(n)
-      n.meta = nt.meta
-      n.style = nt.style
+    if state.fallback_threshold and #nodes > state.fallback_threshold then
+      fallback = true
+    else
+      for _, n in ipairs(nodes) do
+        local nt = get_set_node_type(n)
+        n.meta = nt.meta
+        n.style = nt.style
+      end
     end
   end
 
@@ -83,35 +90,49 @@ local function new_branch(node, nodes, explorer_config, all_expanded)
     depth = #xplr.util.path_split(path) - 1,
     explorer_config = explorer_config,
     all_expanded = all_expanded or false,
+    fallback = fallback,
   }
 end
 
 local function explore(path, explorer_config)
-  local branch = state.tree[path]
+  local old_branch = state.tree[path]
+  if old_branch and old_branch.fallback then
+    return old_branch
+  end
   local nodes = xplr.util.explore(path, explorer_config)
-  state.tree[path] =
-      new_branch(path, nodes, explorer_config, branch and branch.all_expanded)
+  local branch =
+      new_branch(path, nodes, explorer_config, old_branch and old_branch.all_expanded)
+  state.tree[path] = branch
 
-  for _, node in ipairs(nodes) do
-    if is_dir(node) then
-      if state.tree[node.absolute_path] == nil then
-        state.tree[node.absolute_path] = new_branch(node)
+  if not branch.fallback then
+    for _, node in ipairs(nodes) do
+      if is_dir(node) then
+        if state.tree[node.absolute_path] == nil then
+          state.tree[node.absolute_path] = new_branch(node)
+        end
       end
     end
   end
+
+  return branch
 end
 
 local function expand(path, explorer_config)
   while true do
-    explore(path, explorer_config)
+    local branch = explore(path, explorer_config)
+    if branch.fallback then
+      return true
+    end
 
-    state.tree[path].expansion = Expansion.OPEN
+    branch.expansion = Expansion.OPEN
     if path == state.root then
       break
     end
     path = xplr.util.dirname(path)
     explorer_config = (state.tree[path] or {}).explorer_config or explorer_config
   end
+
+  return false
 end
 
 local function offset(listing, height)
@@ -219,6 +240,7 @@ end
 
 local function render(ctx)
   state.pwd = ctx.app.pwd
+
   if ctx.app.vroot then
     state.root = ctx.app.vroot
   else
@@ -232,12 +254,15 @@ local function render(ctx)
     state.root = common_parent(state.pwd, state.root)
   end
 
+  local is_ok, fallback = pcall(expand, state.pwd, ctx.app.explorer_config)
+  if not is_ok or fallback then
+    return { CustomLayout = state.fallback_layout }
+  end
+
   state.is_selected = {}
   for _, sel in ipairs(ctx.app.selection) do
     state.is_selected[sel.absolute_path] = true
   end
-
-  expand(state.pwd, ctx.app.explorer_config)
 
   local cursor_path = state.pwd
   if ctx.app.focused_node then
@@ -314,7 +339,20 @@ local function open(app)
     return
   end
   local path = app.focused_node.absolute_path
-  expand(path, app.explorer_config)
+  local is_ok, fallback = pcall(expand, path, app.explorer_config)
+  local err = ""
+  if not is_ok then
+    err = tostring(fallback)
+  elseif fallback then
+    err = "# of nodes in this branch is more than fallback threshold: "
+        .. tostring(state.fallback_threshold)
+  end
+
+  if err then
+    return {
+      { LogError = err },
+    }
+  end
 end
 
 local function close(app)
@@ -332,13 +370,16 @@ local function toggle(app)
   end
   local path = app.focused_node.absolute_path
   if state.tree[path].expansion == Expansion.CLOSED then
-    open(app)
+    return open(app)
   elseif state.tree[path].expansion == Expansion.OPEN then
-    close(app)
+    return close(app)
   end
 end
 
 local function close_all(app)
+  if not app.directory_buffer then
+    return
+  end
   for _, node in ipairs(app.directory_buffer.nodes) do
     if is_dir(node) then
       state.tree[node.absolute_path].expansion = Expansion.CLOSED
@@ -348,9 +389,12 @@ local function close_all(app)
 end
 
 local function open_all(app)
+  if not app.directory_buffer then
+    return
+  end
   for _, node in ipairs(app.directory_buffer.nodes) do
     if is_dir(node) then
-      expand(node.absolute_path, app.explorer_config)
+      pcall(expand, node.absolute_path, app.explorer_config)
     end
   end
   state.tree[app.pwd].all_expanded = true
@@ -446,6 +490,9 @@ local function setup(args)
   args.toggle_expansion_all_key = args.toggle_expansion_all_key or "O"
 
   state.indent = args.indent or state.indent
+
+  state.fallback_layout = args.fallback_layout or state.fallback_layout
+  state.fallback_threshold = args.fallback_threshold or state.fallback_threshold
 
   xplr.config.modes.builtin[args.mode].key_bindings.on_key[args.key] = {
     help = "tree view",

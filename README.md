@@ -59,6 +59,11 @@ require("tree-view").setup({
 
     -- Disables toggling layout.
     as_default_layout = false,
+
+    -- Automatically fallback to this layout for better performance if the
+    -- branch contains # of nodes more than the threshold value
+    fallback_layout = "Table",
+    fallback_threshold = 500,  -- default: nil (disabled)
 })
 
 -- In default mode:
