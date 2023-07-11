@@ -22,10 +22,20 @@ local Expansion = {
   NA = "◦",
 }
 
-Expansion.highlight = function(expansion)
-  if expansion == Expansion.OPEN then
+Expansion.decorate = function(self, str)
+  if self == Expansion.OPEN then
+    return Expansion.OPEN
+  elseif self == Expansion.CLOSED then
+    return " "
+  else
+    return " "
+  end
+end
+
+Expansion.highlight = function(self)
+  if self == Expansion.OPEN then
     return "▼"
-  elseif expansion == Expansion.CLOSED then
+  elseif self == Expansion.CLOSED then
     return "▶"
   else
     return "•"
@@ -275,7 +285,7 @@ local function render(ctx)
   for i, line in ipairs(lines) do
     local is_highlighted = false
     local is_focused = false
-    local exp_icon = line.expansion
+    local exp_icon = Expansion.decorate(line.expansion)
 
     if cursor_path and cursor_path == line.path then
       is_highlighted = true
