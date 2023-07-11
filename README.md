@@ -49,7 +49,6 @@ require("tree-view").setup({
     toggle_layout_mode = "default",
     toggle_layout_key = "esc",
 
-
     -- Start xplr with tree view layout
     as_initial_layout = false,
 
@@ -61,7 +60,7 @@ require("tree-view").setup({
     fallback_layout = "Table",
     fallback_threshold = 500,  -- default: nil (disabled)
 
-    -- Press backspace to close all and back
+    -- Press backspace to close all and back and close all
     close_all_and_back_mode = "default",
     close_all_and_back_key = "backspace",
 
@@ -81,13 +80,6 @@ require("tree-view").setup({
     goto_prev_open_mode = "default",
     goto_prev_open_key = "(",
 })
-
--- In default mode:
---   Press `esc` to toggle layout.
---   Press `o` to toggle expansion.
---   Press `O` to toggle all expansion.
--- In switch_layout mode:
---   Press `T` to switch to tree layout
 ```
 
 ## Also see:
