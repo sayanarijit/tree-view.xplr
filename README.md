@@ -2,7 +2,7 @@
 
 This plugin implements tree view support for xplr.
 
-![demo](https://github.com/sayanarijit/tree-view.xplr/assets/11632726/430e531f-acd5-44c5-8ae9-d0854772f2e2)
+![demo](https://github.com/sayanarijit/tree-view.xplr/assets/11632726/b84da1aa-8b29-4398-a22a-f180006413ff)
 
 ## Requirements
 
