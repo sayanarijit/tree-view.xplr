@@ -531,13 +531,6 @@ local function goto_prev_open(app)
 end
 
 local function focus_next(app)
-  -- Make it compatible with "up"/"down" keybindings
-  if not state.is_layout_active then
-    return {
-      "FocusNext",
-    }
-  end
-
   local dirbuf = app.directory_buffer
   if not dirbuf then
     return
@@ -570,13 +563,6 @@ local function focus_next(app)
 end
 
 local function focus_prev(app)
-  -- Make it compatible with "up"/"down" keybindings
-  if not state.is_layout_active then
-    return {
-      "FocusPrevious",
-    }
-  end
-
   local dirbuf = app.directory_buffer
   if not dirbuf then
     return
