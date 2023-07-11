@@ -72,11 +72,11 @@ require("tree-view").setup({
     toggle_expansion_all_mode = "default",
     toggle_expansion_all_key = "O",
 
-    -- Go to the next deepest level directory that's open
+    -- Go to the next deep level directory that's open
     goto_next_open_mode = "default",
     goto_next_open_key = ")",
 
-    -- Go to the previous deepest level directory that's open
+    -- Go to the previous deep level directory that's open
     goto_prev_open_mode = "default",
     goto_prev_open_key = "(",
 })
