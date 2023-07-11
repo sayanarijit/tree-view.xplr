@@ -57,11 +57,11 @@ require("tree-view").setup({
     toggle_expansion_all_mode = "default",
     toggle_expansion_all_key = "O",
 
-    -- Focus on the next visible line, not compatible up/down action
+    -- Focus on the next visible line, not compatible with up/down action
     focus_next_mode = "default",
     focus_next_key = "]",
 
-    -- Focus on the previous visible line, not compatible up/down action
+    -- Focus on the previous visible line, not compatible with up/down action
     focus_prev_mode = "default",
     focus_prev_key = "[",
 
