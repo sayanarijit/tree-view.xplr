@@ -485,7 +485,9 @@ local function goto_next_open(app)
     elseif is_visibly_open(path) and has_visibly_max_depth(path) then
       if not skip then
         return {
-          { ChangeDirectory = path },
+          -- Set the history
+          { FocusPath = path },
+          "Enter",
         }
       elseif not first then
         first = path
@@ -495,7 +497,9 @@ local function goto_next_open(app)
 
   if not xplr.config.general.enforce_bounded_index_navigation and first then
     return {
-      { ChangeDirectory = first },
+      -- Set the history
+      { FocusPath = first },
+      "Enter",
     }
   end
 end
@@ -506,7 +510,9 @@ local function goto_prev_open(app)
     if is_visibly_open(path) and has_visibly_max_depth(path) then
       if prev and path == app.pwd then
         return {
-          { ChangeDirectory = prev },
+          -- Set the history
+          { FocusPath = prev },
+          "Enter",
         }
       else
         prev = path
@@ -516,7 +522,9 @@ local function goto_prev_open(app)
 
   if not xplr.config.general.enforce_bounded_index_navigation then
     return {
-      { ChangeDirectory = prev },
+      -- Set the history
+      { FocusPath = prev },
+      "Enter",
     }
   end
 end
