@@ -449,6 +449,64 @@ local function toggle_layout(_)
   return msgs
 end
 
+local function is_visibly_open(path)
+  while true do
+    if path == "/" then
+      break
+    end
+    if state.tree[path] and state.tree[path].expansion ~= Expansion.OPEN then
+      return false
+    end
+    path = xplr.util.dirname(path)
+  end
+  return true
+end
+
+local function goto_next_open(app)
+  local skip = true
+  local first = nil
+  for path, _ in pairs(state.tree) do
+    if path == app.pwd then
+      skip = false
+    elseif is_visibly_open(path) then
+      if not skip then
+        return {
+          { ChangeDirectory = path },
+        }
+      elseif not first then
+        first = path
+      end
+    end
+  end
+
+  if not xplr.config.general.enforce_bounded_index_navigation and first then
+    return {
+      { ChangeDirectory = first },
+    }
+  end
+end
+
+local function goto_prev_open(app)
+  local prev = nil
+  for path, _ in pairs(state.tree) do
+    if is_visibly_open(path) then
+      if prev and path == app.pwd then
+        return {
+          { ChangeDirectory = prev },
+        }
+      else
+        prev = path
+      end
+    end
+  end
+
+  if not xplr.config.general.enforce_bounded_index_navigation then
+    return {
+      { ChangeDirectory = prev },
+    }
+  end
+end
+
 xplr.fn.custom.tree_view = {
   render = render,
   toggle = toggle,
@@ -456,6 +514,11 @@ xplr.fn.custom.tree_view = {
   toggle_layout = toggle_layout,
   open = open,
   close = close,
+  open_all = open_all,
+  close_all = close_all,
+  goto_next_open = goto_next_open,
+  goto_prev_open = goto_prev_open,
+  is_visibly_open = is_visibly_open,
 }
 
 local function setup(args)
@@ -499,6 +562,15 @@ local function setup(args)
   args.toggle_expansion_all_mode = args.toggle_expansion_all_mode or "default"
   args.toggle_expansion_all_key = args.toggle_expansion_all_key or "O"
 
+  args.goto_next_open_mode = args.goto_next_open_mode or "default"
+  args.goto_next_open_key = args.goto_next_open_key or ")"
+
+  args.goto_prev_open_mode = args.goto_prev_open_mode or "default"
+  args.goto_prev_open_key = args.goto_prev_open_key or "("
+
+  args.close_all_and_back_mode = args.close_all_and_back_mode or "default"
+  args.close_all_and_back_key = args.close_all_and_back_key or "backspace"
+
   state.indent = args.indent or state.indent
 
   state.fallback_layout = args.fallback_layout or state.fallback_layout
@@ -536,6 +608,31 @@ local function setup(args)
     messages = {
       "PopMode",
       { CallLuaSilently = "custom.tree_view.toggle_all" },
+    },
+  }
+
+  xplr.config.modes.builtin[args.goto_next_open_mode].key_bindings.on_key[args.goto_next_open_key] =
+  {
+    help = "goto next open",
+    messages = {
+      { CallLuaSilently = "custom.tree_view.goto_next_open" },
+    },
+  }
+
+  xplr.config.modes.builtin[args.goto_prev_open_mode].key_bindings.on_key[args.goto_prev_open_key] =
+  {
+    help = "goto prev open",
+    messages = {
+      { CallLuaSilently = "custom.tree_view.goto_prev_open" },
+    },
+  }
+
+  xplr.config.modes.builtin[args.close_all_and_back_mode].key_bindings.on_key[args.close_all_and_back_key] =
+  {
+    help = "close all and back",
+    messages = {
+      { CallLuaSilently = "custom.tree_view.close_all" },
+      "Back",
     },
   }
 end

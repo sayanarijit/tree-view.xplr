@@ -49,12 +49,8 @@ require("tree-view").setup({
     toggle_layout_mode = "default",
     toggle_layout_key = "esc",
 
-    toggle_expansion_mode = "default",
-    toggle_expansion_key = "o",
 
-    toggle_expansion_all_mode = "default",
-    toggle_expansion_all_key = "O",
-
+    -- Start xplr with tree view layout
     as_initial_layout = false,
 
     -- Disables toggling layout.
@@ -64,6 +60,26 @@ require("tree-view").setup({
     -- branch contains # of nodes more than the threshold value
     fallback_layout = "Table",
     fallback_threshold = 500,  -- default: nil (disabled)
+
+    -- Press backspace to close all and back
+    close_all_and_back_mode = "default",
+    close_all_and_back_key = "backspace",
+
+    -- Toggle expansion without entering
+    toggle_expansion_mode = "default",
+    toggle_expansion_key = "o",
+
+    -- Toggle expansion of all the nodes under pwd
+    toggle_expansion_all_mode = "default",
+    toggle_expansion_all_key = "O",
+
+    -- Go to the next directory that's open
+    goto_next_open_mode = "default",
+    goto_next_open_key = ")",
+
+    -- Go to the previous directory that's open
+    goto_prev_open_mode = "default",
+    goto_prev_open_key = "(",
 })
 
 -- In default mode:
