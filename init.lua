@@ -462,13 +462,27 @@ local function is_visibly_open(path)
   return true
 end
 
+local function has_visibly_max_depth(path)
+  local branch = state.tree[path]
+  if not branch or branch.expansion ~= Expansion.OPEN then
+    return false
+  end
+  for _, node in ipairs(branch.nodes) do
+    local child = state.tree[node.absolute_path]
+    if child and child.expansion == Expansion.OPEN then
+      return false
+    end
+  end
+  return true
+end
+
 local function goto_next_open(app)
   local skip = true
   local first = nil
   for path, _ in pairs(state.tree) do
     if path == app.pwd then
       skip = false
-    elseif is_visibly_open(path) then
+    elseif is_visibly_open(path) and has_visibly_max_depth(path) then
       if not skip then
         return {
           { ChangeDirectory = path },
@@ -489,7 +503,7 @@ end
 local function goto_prev_open(app)
   local prev = nil
   for path, _ in pairs(state.tree) do
-    if is_visibly_open(path) then
+    if is_visibly_open(path) and has_visibly_max_depth(path) then
       if prev and path == app.pwd then
         return {
           { ChangeDirectory = prev },
@@ -518,7 +532,6 @@ xplr.fn.custom.tree_view = {
   close_all = close_all,
   goto_next_open = goto_next_open,
   goto_prev_open = goto_prev_open,
-  is_visibly_open = is_visibly_open,
 }
 
 local function setup(args)
@@ -637,4 +650,9 @@ local function setup(args)
   }
 end
 
-return { setup = setup, render_node = render_node }
+return {
+  setup = setup,
+  render_node = render_node,
+  is_visibly_open = is_visibly_open,
+  has_visibly_max_depth = has_visibly_max_depth,
+}
