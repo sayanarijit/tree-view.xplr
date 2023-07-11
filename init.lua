@@ -22,7 +22,7 @@ local Expansion = {
   NA = "◦",
 }
 
-Expansion.decorate = function(self, str)
+Expansion.decorate = function(self)
   if self == Expansion.OPEN then
     return Expansion.OPEN
   elseif self == Expansion.CLOSED then
