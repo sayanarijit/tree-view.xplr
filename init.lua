@@ -14,6 +14,7 @@ local state = {
   node_types = {},
   fallback_layout = "Table",
   fallback_threshold = nil,
+  lines = {},
 }
 
 local Expansion = {
@@ -279,10 +280,10 @@ local function render(ctx)
     cursor_path = ctx.app.focused_node.absolute_path
   end
 
-  local lines = list_dfs(state.root)
+  state.lines = list_dfs(state.root)
 
   local body = {}
-  for i, line in ipairs(lines) do
+  for i, line in ipairs(state.lines) do
     local is_highlighted = false
     local is_focused = false
     local exp_icon = Expansion.decorate(line.expansion)
@@ -479,18 +480,18 @@ end
 local function goto_next_open(app)
   local skip = true
   local first = nil
-  for path, _ in pairs(state.tree) do
-    if path == app.pwd then
+  for _, line in ipairs(state.lines) do
+    if line.path == app.pwd then
       skip = false
-    elseif is_visibly_open(path) and has_visibly_max_depth(path) then
+    elseif is_visibly_open(line.path) and has_visibly_max_depth(line.path) then
       if not skip then
         return {
           -- Set the history
-          { FocusPath = path },
+          { FocusPath = line.path },
           "Enter",
         }
       elseif not first then
-        first = path
+        first = line.path
       end
     end
   end
@@ -506,16 +507,16 @@ end
 
 local function goto_prev_open(app)
   local prev = nil
-  for path, _ in pairs(state.tree) do
-    if is_visibly_open(path) and has_visibly_max_depth(path) then
-      if prev and path == app.pwd then
+  for _, line in ipairs(state.lines) do
+    if is_visibly_open(line.path) and has_visibly_max_depth(line.path) then
+      if prev and line.path == app.pwd then
         return {
           -- Set the history
           { FocusPath = prev },
           "Enter",
         }
       else
-        prev = path
+        prev = line.path
       end
     end
   end
@@ -525,6 +526,66 @@ local function goto_prev_open(app)
       -- Set the history
       { FocusPath = prev },
       "Enter",
+    }
+  end
+end
+
+local function focus_next(app)
+  local dirbuf = app.directory_buffer
+  if not dirbuf then
+    return
+  end
+
+  local focused_path = app.focused_node and app.focused_node.absolute_path or app.pwd
+
+  local first = nil
+  local skip = true
+
+  for _, line in ipairs(state.lines) do
+    if line.path ~= state.root then
+      if line.path == focused_path then
+        skip = false
+      elseif not skip then
+        return {
+          { FocusPath = line.path },
+        }
+      elseif not first then
+        first = line.path
+      end
+    end
+  end
+
+  if first and not xplr.config.general.enforce_bounded_index_navigation then
+    return {
+      { FocusPath = first },
+    }
+  end
+end
+
+local function focus_prev(app)
+  local dirbuf = app.directory_buffer
+  if not dirbuf then
+    return
+  end
+
+  local focused_path = app.focused_node and app.focused_node.absolute_path or app.pwd
+  local prev = nil
+
+  for _, line in ipairs(state.lines) do
+    if line.path ~= state.root then
+      if prev and line.path == focused_path then
+        return {
+          { FocusPath = prev },
+        }
+      else
+        prev = line.path
+      end
+    end
+  end
+
+  if prev and not xplr.config.general.enforce_bounded_index_navigation then
+    return {
+      { FocusPath = prev },
     }
   end
 end
@@ -540,6 +601,8 @@ xplr.fn.custom.tree_view = {
   close_all = close_all,
   goto_next_open = goto_next_open,
   goto_prev_open = goto_prev_open,
+  focus_next = focus_next,
+  focus_prev = focus_prev,
 }
 
 local function setup(args)
@@ -582,6 +645,12 @@ local function setup(args)
 
   args.toggle_expansion_all_mode = args.toggle_expansion_all_mode or "default"
   args.toggle_expansion_all_key = args.toggle_expansion_all_key or "O"
+
+  args.focus_next_mode = args.focus_next_mode or "default"
+  args.focus_next_key = args.focus_next_key or "]"
+
+  args.focus_prev_mode = args.focus_prev_mode or "default"
+  args.focus_prev_key = args.focus_prev_key or "["
 
   args.goto_next_open_mode = args.goto_next_open_mode or "default"
   args.goto_next_open_key = args.goto_next_open_key or ")"
@@ -629,6 +698,22 @@ local function setup(args)
     messages = {
       "PopMode",
       { CallLuaSilently = "custom.tree_view.toggle_all" },
+    },
+  }
+
+  xplr.config.modes.builtin[args.focus_next_mode].key_bindings.on_key[args.focus_next_key] =
+  {
+    help = "next line",
+    messages = {
+      { CallLuaSilently = "custom.tree_view.focus_next" },
+    },
+  }
+
+  xplr.config.modes.builtin[args.focus_prev_mode].key_bindings.on_key[args.focus_prev_key] =
+  {
+    help = "prev line",
+    messages = {
+      { CallLuaSilently = "custom.tree_view.focus_prev" },
     },
   }
 
