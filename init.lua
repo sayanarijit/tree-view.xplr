@@ -642,11 +642,11 @@ local function setup(args)
 
   xplr.config.modes.builtin[args.close_all_and_back_mode].key_bindings.on_key[args.close_all_and_back_key] =
   {
-    help = "close all and back and close all",
+    help = "close all and back and close",
     messages = {
       { CallLuaSilently = "custom.tree_view.close_all" },
       "Back",
-      { CallLuaSilently = "custom.tree_view.close_all" },
+      { CallLuaSilently = "custom.tree_view.close" },
     },
   }
 end

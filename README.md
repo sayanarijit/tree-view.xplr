@@ -60,7 +60,7 @@ require("tree-view").setup({
     fallback_layout = "Table",
     fallback_threshold = 500,  -- default: nil (disabled)
 
-    -- Press backspace to close all and back and close all
+    -- Press backspace to close all and back and close
     close_all_and_back_mode = "default",
     close_all_and_back_key = "backspace",
 
