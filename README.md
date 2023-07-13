@@ -92,6 +92,10 @@ require("tree-view").setup({
 })
 ```
 
+## Features
+
+- Supports vroot (type `:vv` to toggle)
+
 ## Also see:
 
 - [zentable.xplr](https://github.com/sayanarijit/zentable.xplr)
