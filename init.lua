@@ -112,7 +112,7 @@ local function explore(path, explorer_config)
   end
   local nodes = xplr.util.explore(path, explorer_config)
   local branch =
-      new_branch(path, nodes, explorer_config, old_branch and old_branch.all_expanded)
+    new_branch(path, nodes, explorer_config, old_branch and old_branch.all_expanded)
   state.tree[path] = branch
 
   if not branch.fallback then
@@ -220,7 +220,7 @@ local function render_node(node)
       r = r .. "×"
     else
       local symlink_path =
-          xplr.util.shorten(node.symlink.absolute_path, { base = node.parent })
+        xplr.util.shorten(node.symlink.absolute_path, { base = node.parent })
       if node.symlink.is_dir then
         symlink_path = symlink_path .. "/"
       end
@@ -259,8 +259,8 @@ local function render(ctx)
   end
 
   if
-      state.pwd ~= state.root
-      and string.sub(state.pwd, 1, #state.root + 1) ~= state.root .. "/"
+    state.pwd ~= state.root
+    and string.sub(state.pwd, 1, #state.root + 1) ~= state.root .. "/"
   then
     state.root = common_parent(state.pwd, state.root)
   end
@@ -333,7 +333,11 @@ local function render(ctx)
 
   local title = state.pwd
   if ctx.app.vroot then
-    title = "vroot:/" .. string.sub(state.pwd, #ctx.app.vroot + 2)
+    local rel = string.sub(state.pwd, #ctx.app.vroot + 1)
+    if string.sub(rel, 1, 1) == "/" then
+      rel = string.sub(rel, 2)
+    end
+    title = "vroot:/" .. rel
   end
   title = " " .. title .. " (" .. tostring(#state.tree[state.pwd].nodes) .. ") "
 
@@ -356,7 +360,7 @@ local function open(app)
     err = tostring(fallback)
   elseif fallback then
     err = "# of nodes in this branch is more than fallback threshold: "
-        .. tostring(state.fallback_threshold)
+      .. tostring(state.fallback_threshold)
   end
 
   if err then
@@ -615,7 +619,7 @@ local function setup(args)
   if args.as_default_layout == true then
     if state.fullscreen then
       xplr.config.layouts.builtin.default =
-          xplr.config.layouts.custom.tree_view_fullscreen
+        xplr.config.layouts.custom.tree_view_fullscreen
     else
       xplr.config.layouts.builtin.default = xplr.config.layouts.custom.tree_view
       state.is_layout_active = true
@@ -676,73 +680,73 @@ local function setup(args)
   }
 
   xplr.config.modes.builtin[args.toggle_layout_mode].key_bindings.on_key[args.toggle_layout_key] =
-  {
-    help = "tree view",
-    messages = {
-      "PopMode",
-      { CallLuaSilently = "custom.tree_view.toggle_layout" },
-    },
-  }
+    {
+      help = "tree view",
+      messages = {
+        "PopMode",
+        { CallLuaSilently = "custom.tree_view.toggle_layout" },
+      },
+    }
 
   xplr.config.modes.builtin[args.toggle_expansion_mode].key_bindings.on_key[args.toggle_expansion_key] =
-  {
-    help = "toggle expansion",
-    messages = {
-      "PopMode",
-      { CallLuaSilently = "custom.tree_view.toggle" },
-    },
-  }
+    {
+      help = "toggle expansion",
+      messages = {
+        "PopMode",
+        { CallLuaSilently = "custom.tree_view.toggle" },
+      },
+    }
 
   xplr.config.modes.builtin[args.toggle_expansion_all_mode].key_bindings.on_key[args.toggle_expansion_all_key] =
-  {
-    help = "toggle all expansion",
-    messages = {
-      "PopMode",
-      { CallLuaSilently = "custom.tree_view.toggle_all" },
-    },
-  }
+    {
+      help = "toggle all expansion",
+      messages = {
+        "PopMode",
+        { CallLuaSilently = "custom.tree_view.toggle_all" },
+      },
+    }
 
   xplr.config.modes.builtin[args.focus_next_mode].key_bindings.on_key[args.focus_next_key] =
-  {
-    help = "next line",
-    messages = {
-      { CallLuaSilently = "custom.tree_view.focus_next" },
-    },
-  }
+    {
+      help = "next line",
+      messages = {
+        { CallLuaSilently = "custom.tree_view.focus_next" },
+      },
+    }
 
   xplr.config.modes.builtin[args.focus_prev_mode].key_bindings.on_key[args.focus_prev_key] =
-  {
-    help = "prev line",
-    messages = {
-      { CallLuaSilently = "custom.tree_view.focus_prev" },
-    },
-  }
+    {
+      help = "prev line",
+      messages = {
+        { CallLuaSilently = "custom.tree_view.focus_prev" },
+      },
+    }
 
   xplr.config.modes.builtin[args.goto_next_open_mode].key_bindings.on_key[args.goto_next_open_key] =
-  {
-    help = "goto next open",
-    messages = {
-      { CallLuaSilently = "custom.tree_view.goto_next_open" },
-    },
-  }
+    {
+      help = "goto next open",
+      messages = {
+        { CallLuaSilently = "custom.tree_view.goto_next_open" },
+      },
+    }
 
   xplr.config.modes.builtin[args.goto_prev_open_mode].key_bindings.on_key[args.goto_prev_open_key] =
-  {
-    help = "goto prev open",
-    messages = {
-      { CallLuaSilently = "custom.tree_view.goto_prev_open" },
-    },
-  }
+    {
+      help = "goto prev open",
+      messages = {
+        { CallLuaSilently = "custom.tree_view.goto_prev_open" },
+      },
+    }
 
   xplr.config.modes.builtin[args.close_all_and_back_mode].key_bindings.on_key[args.close_all_and_back_key] =
-  {
-    help = "close all and back and close",
-    messages = {
-      { CallLuaSilently = "custom.tree_view.close_all" },
-      "Back",
-      { CallLuaSilently = "custom.tree_view.close" },
-    },
-  }
+    {
+      help = "close all and back and close",
+      messages = {
+        { CallLuaSilently = "custom.tree_view.close_all" },
+        "Back",
+        { CallLuaSilently = "custom.tree_view.close" },
+      },
+    }
 end
 
 return {
