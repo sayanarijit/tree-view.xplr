@@ -1,6 +1,17 @@
 ---@diagnostic disable
 local xplr = xplr
+local version = version
 ---@diagnostic enable
+
+local xplrv = nil
+if xplr.util and xplr.util.version then
+  xplrv = xplr.util.version()
+end
+
+local does_support_deep_branch_navigation = xplrv
+  and xplrv.major >= 0
+  and xplrv.minor >= 21
+  and xplrv.patch >= 4
 
 local state = {
   tree = {},
@@ -482,6 +493,11 @@ local function has_visibly_max_depth(path)
 end
 
 local function goto_next_open(app)
+  if not state.is_layout_active and does_support_deep_branch_navigation then
+    return {
+      "NextVisitedDeepBranch",
+    }
+  end
   local skip = true
   local first = nil
   for _, line in ipairs(state.lines) do
@@ -510,6 +526,12 @@ local function goto_next_open(app)
 end
 
 local function goto_prev_open(app)
+  if not state.is_layout_active and does_support_deep_branch_navigation then
+    return {
+      "PreviousVisitedDeepBranch",
+    }
+  end
+
   local prev = nil
   for _, line in ipairs(state.lines) do
     if is_visibly_open(line.path) and has_visibly_max_depth(line.path) then
