@@ -99,5 +99,6 @@ require("tree-view").setup({
 ## Also see:
 
 - [zentable.xplr](https://github.com/sayanarijit/zentable.xplr)
+- [zenselection.xplr](https://github.com/sayanarijit/zenselection.xplr)
 - [dual-pane.xplr](https://github.com/sayanarijit/dual-pane.xplr)
 - [tri-pane.xplr](https://github.com/sayanarijit/tri-pane.xplr)
